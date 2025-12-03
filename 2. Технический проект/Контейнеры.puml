@@ -1,0 +1,56 @@
+@startuml Контейнеры
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Диаграмма уровня контейнеров - Сервис Парковки
+
+Person(driver, "Водитель", "Пользователь системы")
+Person(admin, "Администратор парковки", "Управляет парковками и тарифами")
+Person(operator, "Оператор системы", "Обеспечивает техническую поддержку")
+
+System_Boundary(parkingSystem, "Сервис Парковки") {
+    System_Boundary(services, "Сервисы") {
+        Container(authService, "Auth Service", ".NET", "Аутентификация, авторизация, JWT токены, роли")
+        Container(parkingService, "Parking Service", ".NET", "Управление парковками и местами, интеграция с Google Maps")
+        Container(bookingService, "Booking Service", ".NET", "Создание и управление бронированиями")
+        Container(paymentService, "Payment Service", ".NET", "Интеграция с Монета.ру, обработка платежей")
+        Container(notificationService, "Notification Service", ".NET", "Email и push уведомления")
+        Container(adminService, "Admin Service", ".NET", "Управление провайдерами, тарифами, статистика")
+        Container(chatService, "Chat Service", ".NET", "WebSocket чат для администраторов и операторов")
+    }
+
+    Container(spa, "React SPA", "JavaScript, React", "Веб-приложение для пользователей и администраторов")
+    Container(nginx, "Nginx", "Nginx", "API Gateway и балансировщик нагрузки")
+    ContainerDb(postgres, "PostgreSQL", "PostgreSQL", "Основная БД (схемы: auth, parking, booking, payment, admin, chat)")
+    ContainerDb(redis, "Redis", "Redis", "Кэширование и состояние парковочных мест в реальном времени")
+    ContainerQueue(rabbitmq, "RabbitMQ", "RabbitMQ", "Брокер сообщений для асинхронного взаимодействия")
+}
+
+System_Ext(googleMaps, "Google Maps API", "Внешний сервис картографических данных и геолокации")
+System_Ext(moneta, "Монета.ру", "Внешний платежный шлюз для обработки безналичных платежей")
+
+Rel(driver, spa, "Использует", "HTTPS")
+Rel(admin, spa, "Использует", "HTTPS")
+Rel(operator, spa, "Использует", "HTTPS")
+
+Rel(spa, nginx, "API запросы", "HTTPS")
+Rel(spa, chatService, "WebSocket", "WSS")
+
+Rel(nginx, authService, "Маршрутизация", "HTTP")
+Rel(nginx, parkingService, "Маршрутизация", "HTTP")
+Rel(nginx, bookingService, "Маршрутизация", "HTTP")
+Rel(nginx, paymentService, "Маршрутизация", "HTTP")
+Rel(nginx, adminService, "Маршрутизация", "HTTP")
+Rel(nginx, chatService, "Маршрутизация", "HTTP")
+
+Rel(services, postgres, "Читает и записывает", "SQL")
+
+Rel(parkingService, redis, "Кэширует данные", "Redis Protocol")
+Rel(bookingService, rabbitmq, "Публикует события бронирования", "AMQP")
+Rel(paymentService, rabbitmq, "Публикует события платежей", "AMQP")
+Rel(notificationService, rabbitmq, "Подписывается на события", "AMQP")
+Rel(parkingService, googleMaps, "Получает картографические данные", "HTTPS")
+Rel(paymentService, moneta, "Обрабатывает платежи", "HTTPS")
+
+@enduml

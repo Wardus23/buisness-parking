@@ -1,0 +1,75 @@
+@startuml Компоненты
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Диаграмма уровня компонентов - Ключевые сервисы
+
+System_Boundary(parkingService, "Parking Service") {
+    Container(parkingController, "ParkingController", ".NET Controller", "REST API для управления парковками")
+    Container(parkingRepo, "ParkingRepository", ".NET Repository", "Работа с данными парковок")
+    Container(googleMapsClient, "GoogleMapsClient", ".NET Client", "Интеграция с Google Maps API")
+    Container(cacheService, "CacheService", ".NET Service", "Кэширование данных в Redis")
+    Container(availabilityService, "ParkingAvailabilityService", ".NET Service", "Управление доступностью парковочных мест")
+    Container(bookingEventConsumer, "EventConsumer", ".NET Service", "Подписка на события бронирования из RabbitMQ")
+    
+    Rel(parkingController, parkingRepo, "Использует")
+    Rel(parkingController, cacheService, "Использует")
+    Rel(parkingController, availabilityService, "Использует")
+    Rel(availabilityService, parkingRepo, "Использует")
+    Rel(availabilityService, cacheService, "Использует")
+    Rel(availabilityService, googleMapsClient, "Использует")
+    Rel(bookingEventConsumer, availabilityService, "Обновляет доступность")
+}
+
+System_Boundary(bookingService, "Booking Service") {
+    Container(bookingController, "BookingController", ".NET Controller", "REST API для управления бронированиями")
+    Container(bookingRepo, "BookingRepository", ".NET Repository", "Работа с данными бронирований")
+    Container(bookingLogic, "BookingService", ".NET Service", "Бизнес-логика создания и управления бронированиями")
+    Container(bookingEventPub, "EventPublisher", ".NET Service", "Публикация событий в RabbitMQ")
+    Container(parkingClient, "ParkingClient", ".NET Client", "HTTP клиент для вызова Parking Service")
+    Container(paymentClient, "PaymentClient", ".NET Client", "HTTP клиент для вызова Payment Service")
+    
+    Rel(bookingController, bookingLogic, "Использует")
+    Rel(bookingLogic, bookingRepo, "Использует")
+    Rel(bookingLogic, bookingEventPub, "Использует")
+    Rel(bookingLogic, parkingClient, "Проверяет доступность места")
+    Rel(bookingLogic, paymentClient, "Инициирует платеж")
+}
+
+System_Boundary(paymentService, "Payment Service") {
+    Container(paymentController, "PaymentController", ".NET Controller", "REST API для обработки платежей")
+    Container(paymentRepo, "PaymentRepository", ".NET Repository", "Работа с данными платежей")
+    Container(monetaClient, "MonetaClient", ".NET Client", "Интеграция с платежным шлюзом Монета.ру")
+    Container(paymentProcessor, "PaymentProcessor", ".NET Service", "Бизнес-логика обработки платежей")
+    Container(paymentEventPub, "EventPublisher", ".NET Service", "Публикация событий в RabbitMQ")
+    Container(bookingClient, "BookingClient", ".NET Client", "HTTP клиент для получения информации о бронировании")
+    
+    Rel(paymentController, paymentProcessor, "Использует")
+    Rel(paymentProcessor, paymentRepo, "Использует")
+    Rel(paymentProcessor, monetaClient, "Использует")
+    Rel(paymentProcessor, paymentEventPub, "Использует")
+    Rel(paymentProcessor, bookingClient, "Получает данные бронирования")
+}
+
+ContainerDb(postgres, "PostgreSQL", "PostgreSQL", "Основная БД")
+ContainerDb(redis, "Redis", "Redis", "Кэш")
+ContainerQueue(rabbitmq, "RabbitMQ", "RabbitMQ", "Брокер сообщений")
+System_Ext(googleMaps, "Google Maps API", "Внешний сервис картографических данных")
+System_Ext(moneta, "Монета.ру", "Внешний платежный шлюз")
+
+Rel(parkingRepo, postgres, "Читает и записывает", "SQL")
+Rel(cacheService, redis, "Кэширует данные", "Redis Protocol")
+Rel(googleMapsClient, googleMaps, "Получает данные", "HTTPS")
+Rel(bookingRepo, postgres, "Читает и записывает", "SQL")
+Rel(bookingEventPub, rabbitmq, "Публикует события", "AMQP")
+Rel(parkingClient, parkingController, "Проверяет доступность", "HTTP")
+Rel(paymentClient, paymentController, "Инициирует платеж", "HTTP")
+Rel(paymentRepo, postgres, "Читает и записывает", "SQL")
+Rel(monetaClient, moneta, "Обрабатывает платежи", "HTTPS")
+Rel(paymentEventPub, rabbitmq, "Публикует события", "AMQP")
+Rel(bookingClient, bookingController, "Получает данные бронирования", "HTTP")
+Rel(bookingEventConsumer, rabbitmq, "Подписывается на события бронирования", "AMQP")
+
+@enduml
+

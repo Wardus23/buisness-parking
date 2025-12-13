@@ -1,0 +1,88 @@
+@startuml
+title Activity: Поиск, бронирование и оплата парковки (F01 + F02 + F03 + F04)
+
+|Driver|
+start
+:Открыть карту парковок;
+:Выбрать парковку и слот/время;
+:Нажать "Забронировать";
+
+|SPA (React)|
+:POST /bookings (parkingId, slot, timeRange);
+
+|Nginx (API Gateway)|
+:Маршрутизировать запрос в Booking Service;
+
+|Booking Service|
+:Валидировать входные данные;
+:Запросить доступность (ParkingClient -> Parking Service);
+
+|Parking Service|
+if (Доступность есть в Redis?) then (Да)
+  :Прочитать availability из Redis;
+else (Нет)
+  :Прочитать состояние мест из PostgreSQL;
+  :Записать availability в Redis;
+endif
+
+if (Место доступно?) then (Да)
+  :Вернуть Available;
+else (Нет)
+  |Booking Service|
+  :Вернуть ошибку "Нет свободных мест";
+  |SPA (React)|
+  :Показать пользователю ошибку;
+  stop
+endif
+
+|Booking Service|
+:Создать Booking в PostgreSQL;
+:Статус Booking = PendingPayment;
+:Инициировать платеж (PaymentClient -> Payment Service);
+
+|Payment Service|
+:Сформировать платеж (PaymentProcessor);
+:Создать платеж в Монета.ру (MonetaClient);
+:Сохранить Payment в PostgreSQL;
+:Статус Payment = Pending;
+:Опубликовать событие PaymentInitiated в RabbitMQ;
+
+|SPA (React)|
+:Получить redirectUrl;
+:Перенаправить пользователя на оплату (Монета.ру);
+
+|Монета.ру|
+:Пользователь подтверждает оплату;
+:Отправить callback/webhook в Payment Service;
+
+|Payment Service|
+if (Платеж успешен?) then (Да)
+  :Обновить Payment = Success;
+  :Опубликовать PaymentSucceeded в RabbitMQ;
+else (Нет)
+  :Обновить Payment = Failed;
+  :Опубликовать PaymentFailed в RabbitMQ;
+endif
+
+fork
+  |Parking Service|
+  :EventConsumer читает событие из RabbitMQ;
+  if (PaymentSucceeded?) then (Да)
+    :Зафиксировать занятие места в PostgreSQL;
+    :Обновить availability в Redis (реалтайм);
+  else (Нет)
+    :Не резервировать / снять hold (если применимо);
+  endif
+fork again
+  |Notification Service|
+  :Получить событие из RabbitMQ;
+  :Отправить email/push пользователю о результате;
+end fork
+
+|SPA (React)|
+:Обновить экран бронирования/статуса;
+
+|Driver|
+:Видит подтверждение или ошибку оплаты;
+stop
+@enduml

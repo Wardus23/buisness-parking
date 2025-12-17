@@ -7,6 +7,7 @@ skinparam {
   linetype ortho
 }
 
+title Диаграмма развёртывания системы парковки
 ' --- Пользовательские устройства ---
 Deployment_Node(mobile, "Мобильные устройства", "iOS 15+/Android 9+", "React Native") {
   Container(mobile_app, "Мобильное приложение", "React Native", "Интерфейс для водителей")
@@ -98,10 +99,10 @@ Deployment_Node(integrations, "Внешние системы", "External Service
 }
 
 ' --- Горизонтальный масштабирование ---
-Deployment_Node(scaling_group1, "Группа масштабирования 1", "Kubernetes HPA", "Автомасштабирование") {
-  Deployment_Node(search_replica1, "Search Replica 1", "Kubernetes Pod", "Реплика поиска")
+Deployment_Node(scaling_group1, "Группа масштабирования", "Kubernetes HPA", "Автомасштабирование") {
+  Deployment_Node(search_replica1, "Search Replica 3", "Kubernetes Pod", "Реплика поиска")
   Deployment_Node(search_replica2, "Search Replica 2", "Kubernetes Pod", "Реплика поиска")
-  Deployment_Node(search_replica3, "Search Replica 3", "Kubernetes Pod", "Реплика поиска")
+  Deployment_Node(search_replica3, "Search Replica 1", "Kubernetes Pod", "Реплика поиска")
 }
 
 ' --- Соединения ---

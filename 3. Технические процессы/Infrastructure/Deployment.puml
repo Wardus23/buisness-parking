@@ -1,0 +1,158 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+' Конфигурация
+skinparam {
+  shadowing false
+  linetype ortho
+}
+
+' --- Пользовательские устройства ---
+Deployment_Node(mobile, "Мобильные устройства", "iOS 15+/Android 9+", "React Native") {
+  Container(mobile_app, "Мобильное приложение", "React Native", "Интерфейс для водителей")
+}
+
+Deployment_Node(web, "Веб-браузеры", "Chrome/Firefox/Safari", "React") {
+  Container(web_app, "Веб-интерфейс", "React", "Административный портал и веб-версия")
+}
+
+' --- Точка входа (CDN/Edge) ---
+Deployment_Node(cdn, "CDN/Edge", "Cloudflare/Akamai", "Глобальная сеть доставки") {
+  Container(static_assets, "Статические ресурсы", "Nginx", "Кэширование статики")
+}
+
+' --- API Gateway ---
+Deployment_Node(api_gateway_node, "API Gateway Layer", "Kubernetes Pod", "ASP.NET Core") {
+  Container(api_gateway, "API Gateway", "C#/.NET 8", "Маршрутизация, аутентификация, rate limiting")
+}
+
+' --- Микросервисы (Kubernetes Namespace) ---
+Deployment_Node(microservices_ns, "Microservices Namespace", "Kubernetes", "Зона микросервисов") {
+  
+  Deployment_Node(search_pod, "Search Pod", "Kubernetes Pod", "Поиск парковок") {
+    Container(search_service, "Parking Search Service", "C#/.NET 8", "Поиск и фильтрация парковок")
+  }
+  
+  Deployment_Node(booking_pod, "Booking Pod", "Kubernetes Pod", "Бронирование") {
+    Container(booking_service, "Booking Service", "C#/.NET 8", "Управление бронированиями")
+  }
+  
+  Deployment_Node(payment_pod, "Payment Pod", "Kubernetes Pod", "Платежи") {
+    Container(payment_service, "Payment Service", "C#/.NET 8", "Обработка платежей, PCI DSS")
+  }
+  
+  Deployment_Node(notification_pod, "Notification Pod", "Kubernetes Pod", "Уведомления") {
+    Container(notification_service, "Notification Service", "C#/.NET 8", "Email/SMS/push уведомления")
+  }
+  
+  Deployment_Node(analytics_pod, "Analytics Pod", "Kubernetes Pod", "Аналитика") {
+    Container(analytics_service, "Analytics Service", "C#/.NET 8", "Статистика и отчеты")
+  }
+  
+  Deployment_Node(user_pod, "User Pod", "Kubernetes Pod", "Пользователи") {
+    Container(user_service, "User Profile Service", "C#/.NET 8", "Управление пользователями")
+  }
+}
+
+' --- Кэш (Redis) ---
+Deployment_Node(redis_node, "Кэширование", "Redis Cluster", "In-memory данные") {
+  Deployment_Node(redis_master, "Master Node", "Redis 7.0", "Основная нода записи") {
+    Container(redis_cache, "Redis Cache", "Redis", "Кэш парковок и сессий")
+  }
+  Deployment_Node(redis_replica1, "Replica Node 1", "Redis 7.0", "Реплика чтения")
+  Deployment_Node(redis_replica2, "Replica Node 2", "Redis 7.0", "Реплика чтения")
+}
+
+' --- Базы данных (PostgreSQL) ---
+Deployment_Node(postgresql_cluster, "База данных", "PostgreSQL Cluster", "Транзакционные данные") {
+  Deployment_Node(pg_primary, "Primary", "PostgreSQL 15", "Мастер для записи") {
+    Container(postgresql_db, "PostgreSQL", "PostgreSQL", "Основная база данных")
+  }
+  Deployment_Node(pg_replica1, "Read Replica 1", "PostgreSQL 15", "Реплика для чтения")
+  Deployment_Node(pg_replica2, "Read Replica 2", "PostgreSQL 15", "Реплика для чтения")
+  Deployment_Node(pg_timescale, "TimescaleDB Node", "PostgreSQL + Timescale", "Временные ряды")
+}
+
+' --- Message Broker (Kafka) ---
+Deployment_Node(kafka_cluster, "Событийная шина", "Apache Kafka Cluster", "Обработка событий") {
+  Deployment_Node(kafka_broker1, "Broker 1", "Kafka", "Нода брокера")
+  Deployment_Node(kafka_broker2, "Broker 2", "Kafka", "Нода брокера")
+  Deployment_Node(kafka_broker3, "Broker 3", "Kafka", "Нода брокера")
+  Deployment_Node(kafka_schema, "Schema Registry", "Confluent", "Реестр схем")
+}
+
+' --- Мониторинг ---
+Deployment_Node(monitoring_ns, "Monitoring Namespace", "Kubernetes", "Система мониторинга") {
+  Container(prometheus, "Prometheus", "Prometheus", "Сбор метрик")
+  Container(grafana, "Grafana", "Grafana", "Визуализация метрик")
+  Container(elk, "ELK Stack", "Elasticsearch/Logstash/Kibana", "Логирование")
+  Container(sentry, "Sentry", "Sentry", "Отслеживание ошибок")
+}
+
+' --- Интеграции ---
+Deployment_Node(integrations, "Внешние системы", "External Services", "Интеграции") {
+  Deployment_Node(payment_gw, "Платежный шлюз", "Moneta.ru", "Обработка карт")
+  Deployment_Node(sms_gw, "SMS Gateway", "Сторонний сервис", "Отправка SMS")
+  Deployment_Node(email_gw, "Email Service", "Сторонний сервис", "Отправка email")
+  Deployment_Node(maps_service, "Картографический сервис", "Google Maps", "Геоданные")
+}
+
+' --- Горизонтальный масштабирование ---
+Deployment_Node(scaling_group1, "Группа масштабирования 1", "Kubernetes HPA", "Автомасштабирование") {
+  Deployment_Node(search_replica1, "Search Replica 1", "Kubernetes Pod", "Реплика поиска")
+  Deployment_Node(search_replica2, "Search Replica 2", "Kubernetes Pod", "Реплика поиска")
+  Deployment_Node(search_replica3, "Search Replica 3", "Kubernetes Pod", "Реплика поиска")
+}
+
+' --- Соединения ---
+' Пользовательские соединения
+Rel(mobile_app, cdn, "HTTPS", "CDN для статики")
+Rel(web_app, cdn, "HTTPS", "CDN для статики")
+Rel(cdn, api_gateway, "HTTPS/TLS 1.3", "API запросы")
+
+' API Gateway к микросервисам
+Rel(api_gateway, search_service, "HTTP/2", "Запросы поиска")
+Rel(api_gateway, booking_service, "HTTP/2", "Операции бронирования")
+Rel(api_gateway, payment_service, "HTTPS/mTLS", "Платежные операции")
+Rel(api_gateway, user_service, "HTTP/2", "Управление пользователями")
+Rel(api_gateway, analytics_service, "HTTP/2", "Запросы аналитики")
+
+' Кэширование
+Rel(search_service, redis_cache, "Redis protocol", "Кэширование парковок")
+Rel(booking_service, redis_cache, "Redis protocol", "Кэширование бронирований")
+
+' Базы данных
+Rel(booking_service, postgresql_db, "PostgreSQL/SSL", "Хранение бронирований")
+Rel(payment_service, postgresql_db, "PostgreSQL/SSL", "Транзакции")
+Rel(user_service, postgresql_db, "PostgreSQL/SSL", "Пользовательские данные")
+Rel(analytics_service, pg_timescale, "PostgreSQL/SSL", "Временные ряды")
+
+' Событийная шина
+Rel(booking_service, kafka_broker1, "Kafka protocol", "События бронирования")
+Rel(payment_service, kafka_broker1, "Kafka protocol", "События платежей")
+Rel(notification_service, kafka_broker1, "Kafka protocol", "Подписка на уведомления")
+Rel(analytics_service, kafka_broker1, "Kafka protocol", "Подписка на аналитику")
+
+' Внешние интеграции
+Rel(payment_service, payment_gw, "HTTPS/PCI DSS", "Обработка карт")
+Rel(notification_service, sms_gw, "HTTPS", "Отправка SMS")
+Rel(notification_service, email_gw, "SMTP/TLS", "Отправка email")
+Rel(search_service, maps_service, "HTTPS/API", "Геокодирование")
+
+' Мониторинг
+Rel(prometheus, search_service, "HTTP/metrics", "Сбор метрик")
+Rel(prometheus, booking_service, "HTTP/metrics", "Сбор метрик")
+Rel(prometheus, redis_cache, "HTTP/metrics", "Метрики Redis")
+Rel(prometheus, postgresql_db, "HTTP/metrics", "Метрики PostgreSQL")
+
+' Репликация и шардинг
+Rel(pg_primary, pg_replica1, "WAL streaming", "Синхронная репликация")
+Rel(pg_primary, pg_replica2, "WAL streaming", "Асинхронная репликация")
+Rel(redis_master, redis_replica1, "Redis replication", "Репликация кэша")
+
+' Горизонтальное масштабирование
+Rel(api_gateway, search_replica1, "Load balancer", "Распределение нагрузки")
+Rel(api_gateway, search_replica2, "Load balancer", "Распределение нагрузки")
+Rel(api_gateway, search_replica3, "Load balancer", "Распределение нагрузки")
+
+@enduml

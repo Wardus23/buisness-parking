@@ -1,0 +1,486 @@
+@startuml
+title Сервис Парковки - Maintenance Processes
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+' === MONITORING & OBSERVABILITY ===
+card "Мониторинг и наблюдаемость" {
+  card "Prometheus" as prometheus
+  card "Grafana Dashboards" as grafana
+  card "AlertManager" as alertmanager
+  card "Slack/Telegram" as notifications
+  card "Loki + FluentBit" as loki
+  card "Jaeger Tracing" as jaeger
+  card "UptimeRobot" as uptime
+}
+
+note right of prometheus
+  <b>Сбор метрик</b>
+  • 15-секундный интервал
+  • 30 дней хранения
+  • 500+ метрик
+  • Кастомные бизнес-метрики
+end note
+
+note left of grafana
+  <b>Дашборды и визуализация</b>
+  • 15+ дашбордов
+  • Real-time мониторинг
+  • Бизнес и технические метрики
+  • Автоматические отчеты
+end note
+
+note right of alertmanager
+  <b>Управление алертами</b>
+  • 50+ правил алертинга
+  • Группировка и дедупликация
+  • Эскалация через 15 мин
+  • Maintenance windows
+end note
+
+note left of notifications
+  <b>Каналы уведомлений</b>
+  • Slack: #alerts-parking
+  • Telegram: on-call
+  • PagerDuty: critical
+  • Email: daily/weekly reports
+end note
+
+note right of loki
+  <b>Логирование</b>
+  • Централизованный сбор логов
+  • 45 дней retention
+  • Поиск по логам
+  • Анализ инцидентов
+end note
+
+note left of jaeger
+  <b>Распределенная трассировка</b>
+  • End-to-end tracing
+  • Производительность API
+  • Анализ зависимостей
+  • Узкие места системы
+end note
+
+note right of uptime
+  <b>Внешний мониторинг</b>
+  • HTTP/HTTPS проверки
+  • 1-минутный интервал
+  • 10 географических точек
+  • SMS/voice алерты
+end note
+
+' === ЕЖЕДНЕВНЫЕ ПРОЦЕДУРЫ ===
+card "Ежедневные процедуры" {
+  card "Проверка алертов (9:00)" as daily_alerts
+  card "Анализ логов" as log_analysis
+  card "Проверка метрик" as metrics_check
+  card "Бэкапы БД" as daily_backups
+  card "Очистка кэша" as cache_cleanup
+  card "Проверка квот K8s" as k8s_quotas
+}
+
+note left of daily_alerts
+  <b>Утренняя проверка алертов</b>
+  • Проверить ночные инциденты
+  • Ответить на алерты
+  • Обновить статусы
+  • Запланировать работы
+end note
+
+note right of log_analysis
+  <b>Анализ логов за прошлые сутки</b>
+  • Поиск ошибок и warning
+  • Аномалии в поведении
+  • Подозрительная активность
+  • Увеличение error rate
+end note
+
+note left of metrics_check
+  <b>Проверка ключевых метрик</b>
+  • Доступность 99.9%
+  • Latency < 200ms
+  • Error rate < 0.1%
+  • Использование ресурсов
+end note
+
+note right of daily_backups
+  <b>Ежедневные бэкапы</b>
+  • PostgreSQL: полный бэкап
+  • Redis: RDB snapshot
+  • Kafka: topic retention
+  • Проверка целостности
+end note
+
+note left of cache_cleanup
+  <b>Обслуживание кэша</b>
+  • Очистка устаревших ключей
+  • Мониторинг памяти Redis
+  • Оптимизация TTL
+  • Проверка репликации
+end note
+
+note right of k8s_quotas
+  <b>Мониторинг ресурсов K8s</b>
+  • Использование CPU/RAM
+  • Дисковое пространство
+  • Network quotas
+  • Предсказание нехватки
+end note
+
+' === ЕЖЕНЕДЕЛЬНЫЕ ПРОЦЕДУРЫ ===
+card "Еженедельные процедуры" {
+  card "Анализ производительности" as perf_analysis
+  card "Проверка безопасности" as security_check
+  card "Ротация логов" as log_rotation
+  card "Обновление зависимостей" as deps_update
+  card "Capacity planning" as capacity_weekly
+  card "Проверка DR планов" as dr_check
+}
+
+note right of perf_analysis
+  <b>Анализ производительности</b>
+  • Тренды latency
+  • Пики нагрузки
+  • Эффективность кэширования
+  • Рекомендации по оптимизации
+end note
+
+note left of security_check
+  <b>Проверка безопасности</b>
+  • Сканирование уязвимостей
+  • Аудит доступа
+  • Проверка сертификатов
+  • Обновление политик RBAC
+end note
+
+note right of log_rotation
+  <b>Управление логами</b>
+  • Ротация старых логов
+  • Архивация в S3/Glacier
+  • Очистка дискового пространства
+  • Проверка retention policy
+end note
+
+note left of deps_update
+  <b>Обновление зависимостей</b>
+  • Обновления ОС и middleware
+  • Патчи безопасности
+  • Обновление Docker образов
+  • Тестирование compatibility
+end note
+
+note right of capacity_weekly
+  <b>Планирование мощности</b>
+  • Анализ роста нагрузки
+  • Прогноз на следующую неделю
+  • Запрос ресурсов при необходимости
+  • Оптимизация стоимости
+end note
+
+note left of dr_check
+  <b>Проверка Disaster Recovery</b>
+  • Актуальность документации
+  • Доступность backup систем
+  • Проверка контактов ответственных
+  • Обновление runbooks
+end note
+
+' === ЕЖЕМЕСЯЧНЫЕ ПРОЦЕДУРЫ ===
+card "Ежемесячные процедуры" {
+  card "Аудит системы" as system_audit
+  card "Тестирование бэкапов" as backup_test
+  card "Обзор инцидентов" as incident_review
+  card "Обновление SSL сертификатов" as ssl_update
+  card "Патчи безопасности" as security_patches
+  card "DR тренировки" as dr_drill
+}
+
+note right of system_audit
+  <b>Полный аудит системы</b>
+  • Соответствие SLA/SLO
+  • Анализ метрик за месяц
+  • Проверка документации
+  • Compliance проверки
+end note
+
+note left of backup_test
+  <b>Тестирование восстановления</b>
+  • Восстановление тестового окружения
+  • Проверка целостности данных
+  • Измерение RTO/RPO
+  • Документирование результатов
+end note
+
+note right of incident_review
+  <b>Обзор инцидентов месяца</b>
+  • Анализ root causes
+  • Поиск системных проблем
+  • Обновление мониторинга
+  • Улучшение процедур
+end note
+
+note left of ssl_update
+  <b>Обновление SSL сертификатов</b>
+  • Автоматическое продление
+  • Проверка всех доменов
+  • Обновление цепочки сертификатов
+  • Тестирование после обновления
+end note
+
+note right of security_patches
+  <b>Применение патчей безопасности</b>
+  • Критические обновления ОС
+  • Обновления K8s
+  • Патчи для баз данных
+  • Плановый downtime окон
+end note
+
+note left of dr_drill
+  <b>Тренировки по восстановлению</b>
+  • Разные сценарии сбоев
+  • Оценка времени восстановления
+  • Обучение команды
+  • Улучшение процедур
+end note
+
+' === АВТОМАТИЗАЦИЯ ПРОЦЕДУР ===
+card "Автоматизация процедур" {
+  card "Ansible Playbooks" as ansible
+  card "Kubernetes CronJobs" as k8s_cron
+  card "Terraform для инфраструктуры" as terraform
+  card "GitOps для конфигураций" as gitops
+  card "Automated reporting" as auto_reports
+  card "Self-healing системы" as self_healing
+}
+
+note right of ansible
+  <b>Автоматизация рутинных задач</b>
+  • Настройка серверов
+  • Развертывание обновлений
+  • Конфигурация мониторинга
+  • Security hardening
+end note
+
+note left of k8s_cron
+  <b>Планировщик задач в K8s</b>
+  • Ежедневные бэкапы
+  • Еженедельная очистка
+  • Ежемесячные отчеты
+  • Регулярные health checks
+end note
+
+note right of terraform
+  <b>Инфраструктура как код</b>
+  • Воспроизводимость окружений
+  • Версионирование изменений
+  • Автоматическое масштабирование
+  • Управление политиками
+end note
+
+note left of gitops
+  <b>Управление конфигурациями</b>
+  • Автоматические деплои
+  • Rollback через git
+  • Ведение изменений
+  • Синхронизация окружений
+end note
+
+note right of auto_reports
+  <b>Автоматические отчеты</b>
+  • Daily health reports
+  • Weekly performance
+  • Monthly SLA отчеты
+  • Инциденты и availability
+end note
+
+note left of self_healing
+  <b>Системы самовосстановления</b>
+  • Авторестарт failed pods
+  • Перераспределение нагрузки
+  • Автоматическое масштабирование
+  • Circuit breaker паттерны
+end note
+
+' === SERVICE LEVEL MANAGEMENT ===
+card "Управление уровнем сервиса" {
+  card "SLA 99.9% availability" as sla
+  card "SLO: Latency < 200ms" as slo_latency
+  card "SLO: Error rate < 0.1%" as slo_errors
+  card "SLI Dashboard" as sli_dashboard
+  card "Error Budget tracking" as error_budget
+  card "Quarterly reviews" as quarterly_review
+}
+
+note right of sla
+  <b>Service Level Agreement</b>
+  • 99.9% доступности
+  • 8.76 часов простоя в год
+  • Financial penalties
+  • Регулярная отчетность
+end note
+
+note left of slo_latency
+  <b>Service Level Objective</b>
+  • 95-й перцентиль < 200ms
+  • Мониторинг в реальном времени
+  • Автоматические алерты
+  • Корректирующие действия
+end note
+
+note right of slo_errors
+  <b>SLO по уровню ошибок</b>
+  • HTTP ошибки < 0.1%
+  • Бизнес-логические ошибки
+  • Мониторинг по сервисам
+  • Влияние на error budget
+end note
+
+note left of sli_dashboard
+  <b>Мониторинг SLI</b>
+  • Real-time показатели
+  • Historical trends
+  • Сравнение с SLO
+  • Прогнозирование нарушений
+end note
+
+note right of error_budget
+  <b>Управление бюджетом ошибок</b>
+  • Месячный бюджет: 0.1%
+  • Трассировка использования
+  • Приоритизация исправлений
+  • Влияние на релизы
+end note
+
+note left of quarterly_review
+  <b>Квартальные обзоры</b>
+  • Анализ SLA соблюдения
+  • Обновление целей
+  • Планирование улучшений
+  • Отчеты заказчикам
+end note
+
+' === ИНЦИДЕНТ МЕНЕДЖМЕНТ ===
+card "Управление инцидентами" {
+  card "Обнаружение" as incident_detect
+  card "Эскалация" as incident_escalate
+  card "Решение" as incident_resolve
+  card "Пост-мортем" as post_mortem
+  card "Предотвращение" as incident_prevent
+  card "Документация" as incident_docs
+}
+
+note right of incident_detect
+  <b>Обнаружение инцидентов</b>
+  • Автоматические алерты
+  • Мониторинг пользователей
+  • Системы оповещения
+  • Классификация severity
+end note
+
+note left of incident_escalate
+  <b>Процедуры эскалации</b>
+  • On-call инженеры
+  • Уровни эскалации
+  • Коммуникационные каналы
+  • Временные рамки
+end note
+
+note right of incident_resolve
+  <b>Решение инцидентов</b>
+  • Runbooks и процедуры
+  • Временные решения
+  • Перманентные fixes
+  • Верификация исправлений
+end note
+
+note left of post_mortem
+  <b>Анализ после инцидента</b>
+  • Root cause analysis
+  • Timeline восстановления
+  • Уроки learned
+  • Action items
+end note
+
+note right of incident_prevent
+  <b>Предотвращение повторений</b>
+  • Улучшение мониторинга
+  • Автоматизация исправлений
+  • Обучение команды
+  • Архитектурные улучшения
+end note
+
+note left of incident_docs
+  <b>Документация инцидентов</b>
+  • База знаний инцидентов
+  • Обновление runbooks
+  • Шаблоны коммуникаций
+  • Исторические данные
+end note
+
+' === СВЯЗИ МЕЖДУ КОМПОНЕНТАМИ ===
+
+' Мониторинг -> Ежедневные процедуры
+prometheus --> daily_alerts
+loki --> log_analysis
+grafana --> metrics_check
+alertmanager --> daily_alerts
+
+' Ежедневные -> Еженедельные процедуры
+daily_alerts --> perf_analysis
+metrics_check --> capacity_weekly
+log_analysis --> security_check
+
+' Еженедельные -> Ежемесячные процедуры
+perf_analysis --> system_audit
+security_check --> security_patches
+capacity_weekly --> backup_test
+dr_check --> dr_drill
+
+' Автоматизация -> Все процедуры
+ansible --> security_patches
+k8s_cron --> daily_backups
+terraform --> capacity_weekly
+gitops --> system_audit
+auto_reports --> quarterly_review
+self_healing --> incident_resolve
+
+' Управление уровнем сервиса -> Мониторинг
+sla --> prometheus
+slo_latency --> grafana
+slo_errors --> alertmanager
+sli_dashboard --> grafana
+error_budget --> prometheus
+
+' Инцидент менеджмент -> Все компоненты
+incident_detect --> alertmanager
+incident_escalate --> notifications
+incident_resolve --> self_healing
+post_mortem --> incident_docs
+incident_prevent --> ansible
+incident_docs --> gitops
+
+' Дополнительные связи
+ssl_update --> notifications
+backup_test --> daily_backups
+dr_drill --> dr_check
+quarterly_review --> sla
+
+note bottom of daily_alerts
+  <b>Время выполнения: 9:00-9:30 ежедневно</b>
+  Ответственный: дежурный SRE
+end note
+
+note bottom of system_audit
+  <b>Время выполнения: первый понедельник месяца</b>
+  Участвуют: SRE, разработчики, архитектор
+end note
+
+note bottom of dr_drill
+  <b>Периодичность: раз в квартал</b>
+  Продолжительность: 4-8 часов
+  Результат: отчет и улучшения
+end note
+
+@enduml
